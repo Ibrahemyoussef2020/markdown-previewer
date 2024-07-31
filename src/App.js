@@ -21,7 +21,7 @@ const App = () => {
     .then(res => res.json())
     .then(data => setDocsData(data))
     .catch(()=> alert("Sorry , Can't fetch docs data Now , Try an next time"))
-  },[])
+  },[setDocsData])
 
   return (
     <>
