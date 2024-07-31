@@ -1,48 +1,66 @@
 import './App.css';
-import React, {useState} from 'react';
-import {marked} from 'marked'
+import React, { useEffect, useState } from 'react';
+import { marked } from 'marked';
+import useLocalStorage from './hooks/useLocalStorage';
 
 const App = () => {
-  const [code, setCode] = useState('## Hello')
-  const [compiled, setCompiled] = useState('<h2 id="hello">Hello</h2>')
-  const [hide, hidePreview] = useState(true)
 
-  const openMD = () => {
-    console.log(0)
-    hidePreview(true)
-  }
+  const [code, setCode] = useLocalStorage('code', '## Hello');
+  const [docsData, setDocsData] = useLocalStorage('docs', []);
+  const [tab, setTabPreview] = useState(true);
+  const [compiled , setCopiled] = useState(marked.parse(code))
 
-  const openPreview = () => {
-    console.log(0)
-    hidePreview(false)
-  }
 
   const handleChange = (e) => {
-    setCode(e.target.value)
-    setCompiled(marked.parse(e.target.value))
-  }
+    setCode(e.target.value);
+    setCopiled(marked.parse(e.target.value))
+  } 
+
+  useEffect(()=>{
+    fetch('https://jsonplaceholder.typicode.com/posts')
+    .then(res => res.json())
+    .then(data => setDocsData(data))
+    .catch(()=> alert("Sorry , Can't fetch docs data Now , Try an next time"))
+  },[])
 
   return (
     <>
-      <h1>MarkDown Previewer React App</h1>
+      <h1>Markdown Previewer React App</h1>
       <div className="container">
         <div className="btns">
-          <button onClick={openMD} className="btn">MarkDown</button>
-          <button onClick={openPreview}>Preview</button>
+          <button onClick={()=> setTabPreview('text')} className="btn">Markdown</button>
+          <button onClick={()=> setTabPreview('elements')} className="btn">Preview</button>
+          <button onClick={()=> setTabPreview('docs')} className="btn">Docs</button>
         </div>
-        {
-        hide ? 
+        {tab === 'text' ? 
           <div>
-            <textarea onChange={handleChange} value={code}/>
-          </div> : 
+            <textarea onChange={handleChange} value={code} />
+          </div> 
+          
+          : tab === 'elements' ?
+
           <div>
-            <textarea value={compiled}/>
+            <textarea value={compiled} readOnly />
           </div>
+
+          : tab === 'docs' ? 
+
+          <div className='docs'>
+            <h3>[Documentation]</h3>
+            <ul className='table'>
+              {
+                docsData?.map((doc)=> {
+                  return <li key={doc.title}>{doc.title}</li>
+                })
+              }
+            </ul>
+          </div>
+
+          : null
         }
       </div>
     </>
-  )
+  );
 }
-
 
 export default App;
